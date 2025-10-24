@@ -1,0 +1,62 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": "https:\/\/pterodactyleggs.com\/egg\/67958daf83eb6febd56d857c\/download"
+  },
+  "exported_at": "2025-10-24T21:02:36+08:00",
+  "name": "Postgres 17",
+  "author": "iommi.fuentes@zhyporium.com",
+  "description": "A default Postgres install that is not really editable.",
+  "features": [],
+  "docker_images": {
+    "ghcr.io\/enum314\/pterodactyl-files:postgres_17": "ghcr.io\/enum314\/pterodactyl-files:postgres_17"
+  },
+  "file_denylist": [],
+  "startup": "postgres -D \/home\/container\/postgres_db\/ & wait-port 5432;\r\nbash userlist.sh;\r\n\/usr\/bin\/pgbouncer -d \/home\/container\/pgbouncer\/pgbouncer.ini & wait-port 6543;\r\npsql -h 127.0.0.1 -p {{SERVER_PORT}} --dbname {{PGDBNAME}}",
+  "config": {
+    "files": "{\r\n    \"postgres_db\/postgresql.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"#port =\": \"port = {{server.build.default.port}}\",\r\n            \"#external_pid_file =\": \"external_pid_file = '\/home\/container\/postgres_db\/run\/postgres.pid'\",\r\n            \"#unix_socket_directories =\": \"unix_socket_directories = '\/home\/container\/postgres_db\/run\/'\"\r\n        }\r\n    }\r\n}",
+    "startup": "{\r\n    \"done\": \"database system is ready to accept connections\"\r\n}",
+    "logs": "{}",
+    "stop": "\\q"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#! \/bin\/ash\r\nadduser -D -h \/home\/container container\r\nchown -R container: \/mnt\/server\/\r\n\r\n# Ensure OpenSSL is installed\r\nif ! command -v openssl >\/dev\/null 2>&1; then\r\n    echo \"Installing OpenSSL...\"\r\n    apk add --no-cache openssl\r\nfi\r\n\r\n# Ensure cURL is installed\r\nif ! command -v curl >\/dev\/null 2>&1; then\r\n    echo \"Installing cURL...\"\r\n    apk add --no-cache curl\r\nfi\r\n\r\n# Initialize PostgreSQL with scram-sha-256\r\nsu container -c 'initdb -D \/mnt\/server\/postgres_db\/ -A scram-sha-256 -U \"$PGUSER\" --pwfile=<(echo \"$PGPASSWORD\")'\r\n\r\nmkdir -p \/mnt\/server\/postgres_db\/run\/\r\n\r\n# Generate SSL certificate if missing\r\nSSL_DIR=\"\/mnt\/server\/postgres_db\"\r\nSSL_KEY=\"$SSL_DIR\/server.key\"\r\nSSL_CERT=\"$SSL_DIR\/server.crt\"\r\n\r\nif [ ! -f \"$SSL_CERT\" ] || [ ! -f \"$SSL_KEY\" ]; then\r\n    echo \"Generating self-signed SSL certificate...\"\r\n    \r\n    openssl req -new -x509 -days 365 -nodes -subj \"\/CN=postgres\" \\\r\n        -keyout \"$SSL_KEY\" -out \"$SSL_CERT\"\r\n\r\n    chmod 600 \"$SSL_KEY\" # Required for PostgreSQL\r\n    chmod 644 \"$SSL_CERT\"\r\n    \r\n    SSL_DIR=\"\/home\/container\/postgres_db\"\r\n    SSL_KEY=\"$SSL_DIR\/server.key\"\r\n    SSL_CERT=\"$SSL_DIR\/server.crt\"\r\n\r\n    echo \"SSL certificate generated.\"\r\nfi\r\n\r\n# Configure postgresql.conf to use SSL\r\nPOSTGRESQL_CONF=\"\/mnt\/server\/postgres_db\/postgresql.conf\"\r\nif ! grep -q \"ssl = on\" \"$POSTGRESQL_CONF\"; then\r\n    echo \"ssl = on\" >> \"$POSTGRESQL_CONF\"\r\n    echo \"ssl_cert_file = '$SSL_CERT'\" >> \"$POSTGRESQL_CONF\"\r\n    echo \"ssl_key_file = '$SSL_KEY'\" >> \"$POSTGRESQL_CONF\"\r\n    echo \"password_encryption = scram-sha-256\" >> \"$POSTGRESQL_CONF\"\r\nfi\r\n\r\n# Configure pg_hba.conf\r\nPG_HBA=\"\/mnt\/server\/postgres_db\/pg_hba.conf\"\r\ncat <<EOF > \"$PG_HBA\"\r\n# TYPE  DATABASE        USER            ADDRESS                 METHOD\r\n\r\n# Allow local PgBouncer connection\r\nhost    all             all             127.0.0.1\/32            md5\r\n\r\n# Allow all local connections (no password)\r\nlocal   all             all                                     trust\r\n\r\n# Allow external connections with SSL + scram-sha-256\r\nhostssl all             all             0.0.0.0\/0               scram-sha-256\r\nhostssl all             all             ::\/0                    scram-sha-256\r\nEOF\r\n\r\necho \"PostgreSQL setup complete.\"\r\n\r\n# ==========================\r\n# Setup PgBouncer\r\n# ==========================\r\n\r\n# Ensure PgBouncer is installed\r\necho \"Installing PgBouncer...\"\r\napk add --no-cache pgbouncer\r\n\r\npgbouncer --version\r\n\r\nmkdir -p \/mnt\/server\/pgbouncer\r\n\r\n# Create PgBouncer config\r\ncat <<EOF > \/mnt\/server\/pgbouncer\/pgbouncer.ini\r\n[databases]\r\n* = host=127.0.0.1 port=5432\r\n\r\n[pgbouncer]\r\nlisten_addr = 0.0.0.0\r\nlisten_port = 6543\r\nauth_type = scram-sha-256\r\nauth_file = \/home\/container\/pgbouncer\/userlist.txt\r\nadmin_users = postgres\r\npool_mode = transaction\r\nmax_client_conn = 100\r\ndefault_pool_size = 20\r\nreserve_pool_size = 5\r\nreserve_pool_timeout = 3\r\nserver_reset_query = DISCARD ALL\r\nserver_idle_timeout = 30\r\nlog_connections = 1\r\nlog_disconnections = 1\r\npidfile = \/home\/container\/pgbouncer\/pgbouncer.pid\r\nclient_tls_sslmode = require\r\nclient_tls_key_file = \/home\/container\/postgres_db\/server.key\r\nclient_tls_cert_file = \/home\/container\/postgres_db\/server.crt\r\nEOF\r\n\r\ncurl -fsSL https:\/\/raw.githubusercontent.com\/enum314\/pterodactyl-files\/refs\/heads\/main\/eggs\/postgres\/userlist.sh -o \/mnt\/server\/userlist.sh\r\n\r\necho \"PgBouncer setup complete on port 6543.\"",
+      "container": "postgres:17-alpine",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Superuser Name",
+      "description": "The username for the postgres superuser",
+      "env_variable": "PGUSER",
+      "default_value": "pterodactyl",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|string|max:20",
+      "field_type": "text"
+    },
+    {
+      "name": "Superuser Password",
+      "description": "The postgres super user password with a strong default.\r\nYou should be generating new ones for each server.\r\nIf you don't then users can hit other users DB's",
+      "env_variable": "PGPASSWORD",
+      "default_value": "Pl3453Ch4n63M3!",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|string|max:20",
+      "field_type": "text"
+    },
+    {
+      "name": "Database Name",
+      "description": "The database name where the PostgreSQL CLI will connect",
+      "env_variable": "PGDBNAME",
+      "default_value": "postgres",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:20",
+      "field_type": "text"
+    }
+  ]
+}
