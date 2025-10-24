@@ -47,4 +47,3 @@ jobs:
           push: true
           tags: |
             ghcr.io/enum314/pterodactyl-files:postgres_${{ matrix.tag }}
-            ghcr.io/enum314/pterodactyl-files:postgres:latest
