@@ -13,24 +13,15 @@ ARG TARGETARCH
 ENV GOPATH=/go
 ENV CGO_ENABLED=0
 
-RUN adduser -D -h /home/container container
-USER container
-ENV HOME=/home/container
-WORKDIR /home/container
+WORKDIR /workspace
 
 # Install build dependencies and minisign
-RUN apk add --no-cache \
-    ca-certificates \
-    git \
-    make \
-    curl \
-    bash \
-    iproute2 \
-    openssl \
-    tar \
-    tzdata
-
-RUN go install aead.dev/minisign/cmd/minisign@v0.2.1
+RUN apk add -U --no-cache ca-certificates && \
+    apk add -U --no-cache git && \
+    apk add -U --no-cache make && \
+    apk add -U --no-cache curl && \
+    apk add -U --no-cache bash && \
+    go install aead.dev/minisign/cmd/minisign@v0.2.1
 
 # Clone MinIO source code at the specified version
 RUN git clone https://github.com/minio/minio.git . && \
@@ -122,11 +113,11 @@ COPY --from=builder /usr/bin/minio* /usr/bin/
 COPY --from=builder /usr/bin/mc* /usr/bin/
 
 # Copy license files
-COPY --from=builder /home/container/CREDITS /licenses/CREDITS
-COPY --from=builder /home/container/LICENSE /licenses/LICENSE
+COPY --from=builder /workspace/CREDITS /licenses/CREDITS
+COPY --from=builder /workspace/LICENSE /licenses/LICENSE
 
 # Copy entrypoint script
-COPY --from=builder /home/container/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+COPY --from=builder /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
 
 # Environment variables for MinIO configuration
 ENV MINIO_ACCESS_KEY_FILE=access_key \
