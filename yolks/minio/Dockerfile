@@ -19,15 +19,8 @@ ENV HOME=/home/container
 WORKDIR /home/container
 
 # Install build dependencies and minisign
-RUN apk add --no-cache \
-    ca-certificates \
-    git \
-    make \
-    curl \
-    bash \
-    iproute2 \
-    gawk \
-    sed
+RUN apk add --no-cache ca-certificates git make curl bash iproute2 openssl tar tzdata
+
 RUN go install aead.dev/minisign/cmd/minisign@v0.2.1
 
 # Clone MinIO source code at the specified version
