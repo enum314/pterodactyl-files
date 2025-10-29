@@ -15,7 +15,7 @@ ENV CGO_ENABLED=0
 
 RUN adduser -D -h /home/container container
 USER container
-ENV HOME /home/container
+ENV HOME=/home/container
 WORKDIR /home/container
 
 # Install build dependencies and minisign
@@ -27,8 +27,8 @@ RUN apk add --no-cache \
     bash \
     iproute2 \
     gawk \
-    sed \
- && go install aead.dev/minisign/cmd/minisign@v0.2.1
+    sed
+RUN go install aead.dev/minisign/cmd/minisign@v0.2.1
 
 # Clone MinIO source code at the specified version
 RUN git clone https://github.com/minio/minio.git . && \
