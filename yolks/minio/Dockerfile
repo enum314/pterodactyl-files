@@ -123,7 +123,6 @@ RUN chmod -R 777 /usr/bin
 RUN adduser -D -h /home/container container
 USER container
 ENV HOME /home/container
-WORKDIR /home/container
 
 # Copy entrypoint script
 COPY --chmod=755 --chown=root:root entrypoint.sh /entrypoint.sh
