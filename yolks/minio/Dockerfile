@@ -16,12 +16,16 @@ ENV CGO_ENABLED=0
 WORKDIR /workspace
 
 # Install build dependencies and minisign
-RUN apk add -U --no-cache ca-certificates && \
-    apk add -U --no-cache git && \
-    apk add -U --no-cache make && \
-    apk add -U --no-cache curl && \
-    apk add -U --no-cache bash && \
-    go install aead.dev/minisign/cmd/minisign@v0.2.1
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    make \
+    curl \
+    bash \
+    iproute2 \
+    gawk \
+    sed \
+ && go install aead.dev/minisign/cmd/minisign@v0.2.1
 
 # Clone MinIO source code at the specified version
 RUN git clone https://github.com/minio/minio.git . && \
