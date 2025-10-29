@@ -90,6 +90,16 @@ RUN /usr/bin/mc --version
 # Runtime stage - minimal image with MinIO binary
 FROM alpine:latest
 
+RUN apk add --no-cache \
+    bash \
+    iproute2 \
+    busybox-extras \
+    coreutils \
+    sed \
+    gawk \
+    ca-certificates \
+    tzdata
+
 ARG MINIO_VERSION
 ARG TARGETARCH
 
