@@ -19,7 +19,16 @@ ENV HOME=/home/container
 WORKDIR /home/container
 
 # Install build dependencies and minisign
-RUN apk add --no-cache ca-certificates git make curl bash iproute2 openssl tar tzdata
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    make \
+    curl \
+    bash \
+    iproute2 \
+    openssl \
+    tar \
+    tzdata
 
 RUN go install aead.dev/minisign/cmd/minisign@v0.2.1
 
@@ -88,7 +97,7 @@ RUN /usr/bin/mc --version
 
 
 # Runtime stage - minimal image with MinIO binary
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+FROM alpine:latest
 
 ARG MINIO_VERSION
 ARG TARGETARCH
