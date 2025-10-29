@@ -13,7 +13,7 @@ ARG TARGETARCH
 ENV GOPATH=/go
 ENV CGO_ENABLED=0
 
-WORKDIR /workspace
+WORKDIR /home/container
 
 # Install build dependencies and minisign
 RUN apk add -U --no-cache ca-certificates && \
@@ -113,29 +113,18 @@ COPY --from=builder /usr/bin/minio* /usr/bin/
 COPY --from=builder /usr/bin/mc* /usr/bin/
 
 # Copy license files
-COPY --from=builder /workspace/CREDITS /licenses/CREDITS
-COPY --from=builder /workspace/LICENSE /licenses/LICENSE
+COPY --from=builder /home/container/CREDITS /licenses/CREDITS
+COPY --from=builder /home/container/LICENSE /licenses/LICENSE
 
-# Copy entrypoint script
-COPY --from=builder /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+# Set permissions before copying
+RUN chmod -R 777 /usr/bin
 
-# Environment variables for MinIO configuration
-ENV MINIO_ACCESS_KEY_FILE=access_key \
-    MINIO_SECRET_KEY_FILE=secret_key \
-    MINIO_ROOT_USER_FILE=access_key \
-    MINIO_ROOT_PASSWORD_FILE=secret_key \
-    MINIO_KMS_SECRET_KEY_FILE=kms_master_key \
-    MINIO_UPDATE_MINISIGN_PUBKEY="RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav" \
-    MINIO_CONFIG_ENV_FILE=config.env \
-    MC_CONFIG_DIR=/tmp/.mc
-
-# Data volume
-VOLUME ["/data"]
-
+# Set user and environment variables
 RUN adduser -D -h /home/container container
 USER container
 ENV HOME /home/container
 WORKDIR /home/container
 
+# Copy entrypoint script
 COPY --chmod=755 --chown=root:root entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
