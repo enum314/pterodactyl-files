@@ -13,7 +13,10 @@ ARG TARGETARCH
 ENV GOPATH=/go
 ENV CGO_ENABLED=0
 
-WORKDIR /workspace
+RUN adduser -D -h /home/container container
+USER container
+ENV HOME /home/container
+WORKDIR /home/container
 
 # Install build dependencies and minisign
 RUN apk add --no-cache \
@@ -117,11 +120,11 @@ COPY --from=builder /usr/bin/minio* /usr/bin/
 COPY --from=builder /usr/bin/mc* /usr/bin/
 
 # Copy license files
-COPY --from=builder /workspace/CREDITS /licenses/CREDITS
-COPY --from=builder /workspace/LICENSE /licenses/LICENSE
+COPY --from=builder /home/container/CREDITS /licenses/CREDITS
+COPY --from=builder /home/container/LICENSE /licenses/LICENSE
 
 # Copy entrypoint script
-COPY --from=builder /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+COPY --from=builder /home/container/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
 
 # Environment variables for MinIO configuration
 ENV MINIO_ACCESS_KEY_FILE=access_key \
