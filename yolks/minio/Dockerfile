@@ -128,8 +128,7 @@ ENV MINIO_ACCESS_KEY_FILE=access_key \
     MINIO_UPDATE_MINISIGN_PUBKEY="RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRywVWGbP1aVSGav" \
     MINIO_CONFIG_ENV_FILE=config.env \
     MC_CONFIG_DIR=/tmp/.mc
-    # Environment variables for the container
-    HOME /home/container
+    HOME=/home/container
 
 # Data volume
 VOLUME ["/data"]
