@@ -54,9 +54,6 @@ PG_HBA="/mnt/server/postgres_db/pg_hba.conf"
 cat <<EOF > "$PG_HBA"
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
-# Allow local PgBouncer connection
-host    all             all             127.0.0.1/32            md5
-
 # Allow all local connections (no password)
 local   all             all                                     trust
 
@@ -82,11 +79,11 @@ mkdir -p /mnt/server/pgbouncer
 # Create PgBouncer config
 cat <<EOF > /mnt/server/pgbouncer/pgbouncer.ini
 [databases]
-* = host=127.0.0.1 port=5432
+* = host=127.0.0.1 port=$SERVER_PORT
 
 [pgbouncer]
 listen_addr = 0.0.0.0
-listen_port = 6543
+listen_port = $PG_BOUNCER_PORT
 auth_type = scram-sha-256
 auth_file = /home/container/pgbouncer/userlist.txt
 admin_users = postgres
@@ -107,4 +104,4 @@ EOF
 
 curl -fsSL https://raw.githubusercontent.com/enum314/pterodactyl-files/refs/heads/main/eggs/postgres/userlist.sh -o /mnt/server/userlist.sh
 
-echo "PgBouncer setup complete on port 6543."
+echo "PgBouncer setup complete on port $PG_BOUNCER_PORT."
