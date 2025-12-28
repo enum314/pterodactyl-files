@@ -1,25 +1,18 @@
 FROM node:25-trixie-slim
-
+runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-	build-essential \
-	ca-certificates \
-	curl \
-	dnsutils \
-	ffmpeg \
-	git \
-	iproute2 \
-	iputils-ping \
-	libnss3 \
-	libsqlite3-dev \
-	libtool \
-	python3 \
-	python3-dev \
-	sqlite3 \
-	tar \
-	tini \
-	tzdata \
-	zip \
-	&& rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+    curl \
+    dnsutils \
+    ffmpeg \
+    iputils-ping \
+    libnss3 \
+    python3 \
+    sqlite3 \
+    tini \
+    tzdata \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global npm@latest typescript ts-node @types/node pnpm@latest
 
