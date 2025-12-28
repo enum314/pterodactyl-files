@@ -2,17 +2,13 @@ FROM node:24-trixie-slim
 
 # Install only what is needed at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    dnsutils \
-    ffmpeg \
-    iputils-ping \
-    libnss3 \
-    python3 \
-    sqlite3 \
-    tini \
-    tzdata \
-    zip \
+		ca-certificates \
+		libnss3 \
+		tini \
+		ffmpeg \
+		python3 \
+		sqlite3 \
+		tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global npm@latest typescript ts-node @types/node pnpm@latest
