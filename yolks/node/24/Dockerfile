@@ -20,6 +20,10 @@ ENV USER=container
 ENV HOME=/home/container
 WORKDIR /home/container
 
+LABEL name="Node.js" \
+      version="24" \
+      release="24"
+
 STOPSIGNAL SIGINT
 
 COPY --chown=root:root --chmod=755 ./../entrypoint.sh /entrypoint.sh
