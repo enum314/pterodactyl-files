@@ -20,7 +20,7 @@ ENV USER=container
 ENV HOME=/home/container
 WORKDIR /home/container
 
-LABEL name="Node.js - 1" \
+LABEL name="Node.js - 24" \
       version="24" \
       release="24"
 
