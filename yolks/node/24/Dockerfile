@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		sqlite3 \
 		tzdata \
 		iproute2 \
+		unzip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global npm@latest typescript ts-node @types/node pnpm@latest
